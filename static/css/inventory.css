@@ -32,6 +32,10 @@
 
 .label-is-available {
   display: inline-block;
+} 
+
+.availability {
+    font-size: var(--fs-xxxs);
 }
 
 #product-form > div {
@@ -288,11 +292,12 @@
 }
 
 .category {
-    font-weight: 600;
+    font-weight: 500;
     padding: 3px 8px;
     background-color: var(--brown-ver1);
     color: var(--light) !important;
     border-radius: 20px;
+    font-size: var(--fs-xxxs);
     width: fit-content;
 }
 

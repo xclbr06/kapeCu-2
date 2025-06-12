@@ -8,7 +8,7 @@ import json
 import re
 from dotenv import load_dotenv
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 load_dotenv()  
 
@@ -317,6 +317,8 @@ def add_product():
             flash("All fields are required", "warning")
             return redirect(url_for("inventory"))
 
+        normalized_name = name.replace(" ", "").lower()
+
         try:
             price = float(price)
             if price <= 0:
@@ -328,13 +330,26 @@ def add_product():
         try:
             with sqlite3.connect(DB) as conn:
                 cur = conn.cursor()
-                cur.execute("INSERT INTO products (name, price, is_available, category) VALUES (?, ?, ?, ?)",
-                            (name, price, is_available, category))
+
+                cur.execute("""
+                    SELECT id FROM products 
+                    WHERE REPLACE(LOWER(name), ' ', '') = ? AND category = ? AND is_deleted != 1
+                """, (normalized_name, category))
+                duplicate = cur.fetchone()
+
+                if duplicate:
+                    flash("A product with this name already exists in this category.", "warning")
+                    return redirect(url_for("inventory"))
+
+                cur.execute("""
+                    INSERT INTO products (name, price, is_available, category) 
+                    VALUES (?, ?, ?, ?)
+                """, (name, price, is_available, category))
                 conn.commit()
             flash("Product added successfully", "success")
         except sqlite3.Error as e:
             flash(f"An error occurred while adding the product: {e}", "warning")
-            
+
         return redirect(url_for("inventory"))
 
     return getProducts()
@@ -348,7 +363,6 @@ def edit_product(product_id):
         category = request.form.get("category", "").strip()
         is_available = request.form.get("is_available") == "on"
 
-        # Normalize the name for comparison
         normalized_name = name.replace(" ", "").lower()
 
         try:
@@ -363,18 +377,19 @@ def edit_product(product_id):
             with sqlite3.connect(DB) as conn:
                 cur = conn.cursor()
 
-                # Check for duplicate names
                 cur.execute("""
                     SELECT id FROM products 
-                    WHERE REPLACE(LOWER(name), ' ', '') = ? AND id != ?""",
-                    (normalized_name, product_id))
+                    WHERE REPLACE(LOWER(name), ' ', '') = ? 
+                    AND category = ?
+                    AND id != ? 
+                    AND is_deleted != 1
+                """, (normalized_name, category, product_id))
                 duplicate = cur.fetchone()
 
                 if duplicate:
-                    flash("A product with this name already exists.", "warning")
+                    flash("A product with this name already exists in this category.", "warning")
                     return redirect(url_for("inventory"))
 
-                # Update the product
                 cur.execute("""
                     UPDATE products 
                     SET name=?, price=?, is_available=?, category=?
@@ -386,6 +401,7 @@ def edit_product(product_id):
             flash(f"An error occurred while updating the product: {e}", "warning")
 
     return redirect(url_for("inventory"))
+
 @app.route("/inventory/delete/<int:product_id>", methods=["POST"])
 @login_required
 def delete_product(product_id):
@@ -418,7 +434,7 @@ def sales():
     view = request.args.get("view", "daily")
     mop = request.args.get("mop", "all")
 
-    today = datetime.now()
+    today = datetime.now() + timedelta(hours=8)
     weekday_map = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
     from_date = to_date = today.strftime("%Y-%m-%d")

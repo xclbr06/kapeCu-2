@@ -155,42 +155,6 @@
     <button type="button" class="sales-print-btn" onclick="printDiv('print-area')">Print Sales Table</button>
 </div>
 
-<style>
-    @media print {
-        /* Hide non-essential elements */
-        .sales-filter-form, .sales-print-btn {
-            display: none;
-        }
-
-        /* Ensure the print area is visible */
-        .sales-print-area {
-            display: block;
-        }
-
-        /* Adjust table styles for print */
-        .sales-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .sales-table th, .sales-table td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .sales-total-revenue {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-
-        /* Set font size for better readability */
-        body {
-            font-size: 12pt;
-        }
-    }
-</style>
-
 <script>
     document.getElementById('view-select').addEventListener('change', function() {
         document.getElementById('sales-filter-form').submit();

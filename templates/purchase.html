@@ -99,7 +99,7 @@
   <div id="receipt-wrapper">
     <div id="receipt-area" class="receipt-area"></div>
     <button id="print-receipt-btn" class="receipt-btn" onclick="printDiv('receipt-area')">Print Receipt</button>
-    <button class="receipt-btn" onclick="document.getElementById('receipt-modal').style.display='none';">Close</button>
+    <button class="receipt-btn" onclick="location.reload();">Close</button>
   </div>
 </div>
 <script src="{{ url_for('static', filename='js/purchase.js') }}"></script>
