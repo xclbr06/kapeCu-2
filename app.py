@@ -32,9 +32,9 @@ def getProducts():
             conn.row_factory = sqlite3.Row  
             cur = conn.cursor()
             if category == 'all':
-                cur.execute("SELECT id, name, price, is_available, category, image_path FROM products WHERE is_deleted = 0")
+                cur.execute("SELECT id, name, price, is_available, category FROM products WHERE is_deleted = 0")
             else:
-                cur.execute("SELECT id, name, price, is_available, category, image_path FROM products WHERE category = ? AND is_deleted = 0", (category,))
+                cur.execute("SELECT id, name, price, is_available, category FROM products WHERE category = ? AND is_deleted = 0", (category,))
             products = cur.fetchall()
     except sqlite3.Error as e:
         flash(f"An error occurred while fetching products: {e}", "warning")
@@ -294,13 +294,6 @@ def delete_transaction(transaction_id):
 def inventory():
     return getProducts()
 
-UPLOAD_FOLDER = os.path.join('static', 'img')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 @app.route("/inventory/add", methods=["GET", "POST"])
 @login_required
 def add_product():
@@ -309,27 +302,10 @@ def add_product():
         price = request.form.get("price", "").strip()
         category = request.form.get("category", "").strip()
         is_available = request.form.get("is_available", "off") == "on"
-        image = request.files.get("image")
-
-        form_data = {
-            'name': name,
-            'price': price,
-            'category': category,
-            'is_available': is_available
-        }
 
         if not name or not price or not category:
             flash("All fields are required", "warning")
-            return render_template("inventory.html", form_data=form_data, products=getProducts())
-
-        image_path = None
-        if image and image.filename and allowed_file(image.filename):
-            filename = secure_filename(image.filename)
-            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            image_path = f"img/{filename}"
-        elif image and image.filename:
-            flash("Invalid image format. Only png, jpg, jpeg, gif, webp allowed.", "warning")
-            return render_template("inventory.html", form_data=form_data, products=getProducts())
+            return redirect(url_for("inventory"))
 
         try:
             price = float(price)
@@ -337,41 +313,30 @@ def add_product():
                 raise ValueError("Price must be greater than zero")
         except ValueError as e:
             flash(f"Price must be a valid positive number: {e}", "warning")
-            return render_template("inventory.html", form_data=form_data, products=getProducts())
+            return redirect(url_for("inventory"))
 
         try:
             with sqlite3.connect(DB) as conn:
                 cur = conn.cursor()
-                cur.execute("INSERT INTO products (name, price, is_available, category, image_path) VALUES (?, ?, ?, ?, ?)",
-                            (name, price, is_available, category, image_path))
+                cur.execute("INSERT INTO products (name, price, is_available, category) VALUES (?, ?, ?, ?)",
+                            (name, price, is_available, category))
                 conn.commit()
             flash("Product added successfully", "success")
-            return redirect(url_for("inventory"))
         except sqlite3.Error as e:
             flash(f"An error occurred while adding the product: {e}", "warning")
-            return render_template("inventory.html", form_data=form_data, products=getProducts())
+            
+        return redirect(url_for("inventory"))
 
     return getProducts()
 
 @app.route("/inventory/edit/<int:product_id>", methods=["GET", "POST"])
 @login_required
 def edit_product(product_id):
-    print(f"Editing product with ID: {product_id}") 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         price = request.form.get("price", "").strip()
         category = request.form.get("category", "").strip()
         is_available = request.form.get("is_available") == "on"
-        image = request.files.get("image")
-        image_path = None
-
-        if image and image.filename and allowed_file(image.filename):
-            filename = secure_filename(image.filename)
-            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            image_path = f"img/{filename}"
-        elif image and image.filename:
-            flash("Invalid image format. Only png, jpg, jpeg, gif, webp allowed.", "warning")
-            return redirect(url_for("inventory"))
 
         try:
             price = float(price)
@@ -384,23 +349,15 @@ def edit_product(product_id):
         try:
             with sqlite3.connect(DB) as conn:
                 cur = conn.cursor()
-                if image_path:
-                    cur.execute("""
-                        UPDATE products 
-                        SET name=?, price=?, is_available=?, category=?, image_path=?
-                        WHERE id=?""",
-                        (name, price, is_available, category, image_path, product_id))
-                else:
-                    cur.execute("""
-                        UPDATE products 
-                        SET name=?, price=?, is_available=?, category=?
-                        WHERE id=?""",
-                        (name, price, is_available, category, product_id))
+                cur.execute("""
+                    UPDATE products 
+                    SET name=?, price=?, is_available=?, category=?
+                    WHERE id=?""",
+                    (name, price, is_available, category, product_id))
                 conn.commit()
             flash("Product updated successfully", "success")
         except sqlite3.Error as e:
             flash(f"An error occurred while updating the product: {e}", "warning")
-            return redirect(url_for("inventory"))
 
     return redirect(url_for("inventory"))
 
