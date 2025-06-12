@@ -20,6 +20,11 @@
     {% endwith %}
 
     <nav>
+        <header>
+            <div class="logo">
+                <img width="200" src="{{ url_for('static', filename='img/logo.png') }}" alt="">
+            </div>
+        </header>
         {% if session.user %}
             <ul class="nav-list">
                 <li>

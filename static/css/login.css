@@ -17,8 +17,22 @@
     max-width: 500px;
     display: flex;
     flex-direction: column;
+    padding-top: 0;
+    position: relative;
     gap: 2rem;
     box-shadow: var(--shadow-default);
+}
+
+.logo-s {
+    position: absolute;
+    top: -90px;
+    z-index: 1;
+    background-color: var(--light);
+    border-radius: 50%;
+}
+
+.login-header {
+    margin-top: 60px;
 }
 
 #login-form > div {
@@ -27,6 +41,8 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    position: relative;
+    z-index: 3;
 }
 
 .passkey-input-container {

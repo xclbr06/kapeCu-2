@@ -4,6 +4,9 @@
 
 <form method="POST" id="login-form">
     <div>
+        <img class="logo-s" width="180" src="{{ url_for('static', filename='img/KapeCu.png') }}" alt="">
+    </div>
+    <div class="login-header">
         <label>Select User</label>
         <div class="username-buttons">
             {% for name in usernames %}

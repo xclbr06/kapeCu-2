@@ -151,6 +151,17 @@ nav {
     padding: 40px 20px;
     gap: 30px;
     list-style: none; 
+    margin-top: 100px;
+}
+
+.logo {
+  z-index: -1;
+  position: absolute;
+  top: -30px;
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
 }
 
 nav a {
@@ -188,11 +199,6 @@ nav a.nav_active span {
 
 nav li:hover a span, nav li:hover a i {
     color: var(--light);
-}
-
-.logout {
-    margin-top: auto;
-    margin-bottom: 20px;
 }
 
 @media (max-width: 768px) {
