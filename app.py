@@ -603,10 +603,10 @@ def sales():
 # Delete
 
 @app.route("/users")
-@login_required
+# @login_required
 def users():
-    if not is_admin():
-        return redirect(url_for("purchase"))
+    """ if not is_admin():
+        return redirect(url_for("purchase")) """
     
     with sqlite3.connect(DB) as conn:
         cur = conn.cursor()
@@ -615,10 +615,10 @@ def users():
     return render_template("users.html", users=user_list)
 
 @app.route("/users/add", methods=["POST"])
-@login_required
+# @login_required
 def add_user():
-    if not is_admin():
-        return redirect(url_for("purchase"))
+    """ if not is_admin():
+        return redirect(url_for("purchase")) """
     
     username = request.form["username"]
     passkey = request.form["passkey"]
