@@ -8,7 +8,7 @@
 <h2>{{ 'Edit' if edit_user else 'Add New' }} User</h2>
 <form method="POST" class="user-form" action="{{ url_for('edit_user', user_id=edit_user.id) if edit_user else url_for('add_user') }}">
     <label for="username">Username:</label>
-    <input placeholder="Enter username" type="text" name="username" id="username" required value="{{ edit_user.username if edit_user else '' }}">
+    <input placeholder="Enter username" type="text" name="username" id="username" required maxlength="30" value="{{ edit_user.username if edit_user else '' }}">
 
     <label for="passkey">Password:</label>
     <input placeholder="Enter 6 digit password" type="password" name="passkey" id="passkey"

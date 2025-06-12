@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <span class="quantity">${product.quantity}</span>
                 <button type="button" class="quantity-btn increment">+</button>
             </div>
-            <p>Total: ₱<span class="total">${(product.price * product.quantity).toFixed(2)}</span></p>
+            <p class="subtotal">Total: ₱<span class="total">${(product.price * product.quantity).toFixed(2)}</span></p>
             <button type="button" class="cancel-btn cancel">X</button>
         `;
         selectedProductsSection.appendChild(productElement);

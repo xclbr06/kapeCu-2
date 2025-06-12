@@ -58,12 +58,12 @@
         <form id="product-form" action="{{ url_for('add_product') }}" method="post">
             <div class="form-group">
                 <label for="name">Name:</label>
-                <input type="text" name="name" id="product-name" required>
+                <input type="text" name="name" id="product-name" maxlength="30" required>
             </div>
             
             <div class="form-group">
                 <label for="price">Price:</label>
-                <input type="number" name="price" id="product-price" step="0.01" min="0" required>
+                <input type="number" name="price" id="product-price" step="0.01" min="0" max="99999" required>
             </div>
             
             <div class="form-group">
