@@ -90,7 +90,6 @@
     </div>
 </div>
 
-<script type="module" src="{{ url_for('static', filename='js/inventory.js') }}"></script>
 <script>
 function selectProduct(element) {
     const isActive = element.classList.contains('active_product');
@@ -122,7 +121,6 @@ function selectProduct(element) {
         
         document.getElementById('cancel-modal').style.display = 'inline';
 
-        // Show the modal
         modal.style.display = 'flex';
     } else {
         resetFormToDefault();
