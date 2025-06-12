@@ -3,10 +3,6 @@ from auth import login_required, is_admin, init_db
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 import sqlite3
 import json
 import re
@@ -22,6 +18,7 @@ app.secret_key = os.getenv('SECRET_KEY', 'secret')
 DB = os.getenv('DATABASE_URL', 'database.db')
 # When deployed
 # DB = os.getenv('DATABASE_URL', os.path.join(os.path.dirname(__file__), 'database.db'))
+
 
 @app.before_request
 def setup():
@@ -300,6 +297,9 @@ def inventory():
 UPLOAD_FOLDER = os.path.join('static', 'img')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route("/inventory/add", methods=["GET", "POST"])
 @login_required
