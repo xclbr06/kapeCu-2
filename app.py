@@ -621,7 +621,7 @@ def add_user():
 
         cur.execute("""
             SELECT id FROM users 
-            WHERE REPLACE(LOWER(username), ' ', '') = ?""",
+            WHERE REPLACE(LOWER(username), ' ', '') = ? AND is_deleted != 1""",
             (normalized_username,))
         duplicate = cur.fetchone()
 
@@ -658,7 +658,7 @@ def edit_user(user_id):
 
             cur.execute("""
                 SELECT id FROM users 
-                WHERE REPLACE(LOWER(username), ' ', '') = ? AND id != ?""",
+                WHERE REPLACE(LOWER(username), ' ', '') = ? AND id != ? AND is_deleted != 1""",
                 (normalized_username, user_id))
             duplicate = cur.fetchone()
 

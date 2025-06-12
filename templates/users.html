@@ -12,7 +12,7 @@
 
     <label for="passkey">Password:</label>
     <input placeholder="Enter 6 digit password" type="password" name="passkey" id="passkey"
-        placeholder="{{ 'Blank = keep password' if edit_user else '' }}"
+        placeholder="{{ 'Blank = keep password' if edit_user else '' }}" maxlength="6" pattern="\d{6}"
         {{ 'required' if not edit_user else '' }}>
 
     <label for="role">Role:</label>

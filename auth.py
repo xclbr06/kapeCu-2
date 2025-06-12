@@ -17,17 +17,27 @@ def init_db(db_path):
     with sqlite3.connect(db_path) as conn:
         cur = conn.cursor()
 
-        # Users table
+        # Step 1: Create a new table without the UNIQUE constraint
         cur.execute('''
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE IF NOT EXISTS users_new (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
+                username TEXT NOT NULL,
                 passkey TEXT NOT NULL,
                 role TEXT NOT NULL CHECK(role IN ('admin', 'staff')),
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 is_deleted BOOLEAN DEFAULT 0
             );
         ''')
+
+        # Step 2: Copy data from old table
+        cur.execute('''
+            INSERT INTO users_new (id, username, passkey, role, created_at, is_deleted)
+            SELECT id, username, passkey, role, created_at, is_deleted FROM users;
+        ''')
+
+        cur.execute('DROP TABLE users;')
+
+        cur.execute('ALTER TABLE users_new RENAME TO users;')
 
         # Products table
         cur.execute('''
