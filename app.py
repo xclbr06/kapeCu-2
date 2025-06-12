@@ -32,9 +32,19 @@ def getProducts():
             conn.row_factory = sqlite3.Row  
             cur = conn.cursor()
             if category == 'all':
-                cur.execute("SELECT id, name, price, is_available, category FROM products WHERE is_deleted = 0")
+                cur.execute("""
+                    SELECT id, name, price, is_available, category 
+                    FROM products 
+                    WHERE is_deleted = 0 
+                    ORDER BY is_available DESC, name ASC
+                """)
             else:
-                cur.execute("SELECT id, name, price, is_available, category FROM products WHERE category = ? AND is_deleted = 0", (category,))
+                cur.execute("""
+                    SELECT id, name, price, is_available, category 
+                    FROM products 
+                    WHERE category = ? AND is_deleted = 0 
+                    ORDER BY is_available DESC, name ASC
+                """, (category,))
             products = cur.fetchall()
     except sqlite3.Error as e:
         flash(f"An error occurred while fetching products: {e}", "warning")
@@ -338,6 +348,9 @@ def edit_product(product_id):
         category = request.form.get("category", "").strip()
         is_available = request.form.get("is_available") == "on"
 
+        # Normalize the name for comparison
+        normalized_name = name.replace(" ", "").lower()
+
         try:
             price = float(price)
             if price <= 0:
@@ -349,6 +362,19 @@ def edit_product(product_id):
         try:
             with sqlite3.connect(DB) as conn:
                 cur = conn.cursor()
+
+                # Check for duplicate names
+                cur.execute("""
+                    SELECT id FROM products 
+                    WHERE REPLACE(LOWER(name), ' ', '') = ? AND id != ?""",
+                    (normalized_name, product_id))
+                duplicate = cur.fetchone()
+
+                if duplicate:
+                    flash("A product with this name already exists.", "warning")
+                    return redirect(url_for("inventory"))
+
+                # Update the product
                 cur.execute("""
                     UPDATE products 
                     SET name=?, price=?, is_available=?, category=?
@@ -360,7 +386,6 @@ def edit_product(product_id):
             flash(f"An error occurred while updating the product: {e}", "warning")
 
     return redirect(url_for("inventory"))
-
 @app.route("/inventory/delete/<int:product_id>", methods=["POST"])
 @login_required
 def delete_product(product_id):
@@ -589,10 +614,22 @@ def add_user():
         flash("Passkey must be exactly 6 digits", "warning")
         return redirect(url_for("users"))
 
-    hashed_passkey = generate_password_hash(passkey)
+    normalized_username = username.replace(" ", "").lower()
 
     with sqlite3.connect(DB) as conn:
         cur = conn.cursor()
+
+        cur.execute("""
+            SELECT id FROM users 
+            WHERE REPLACE(LOWER(username), ' ', '') = ?""",
+            (normalized_username,))
+        duplicate = cur.fetchone()
+
+        if duplicate:
+            flash("A user with this username already exists.", "warning")
+            return redirect(url_for("users"))
+
+        hashed_passkey = generate_password_hash(passkey)
         cur.execute("INSERT INTO users (username, passkey, role) VALUES (?, ?, ?)",
                     (username, hashed_passkey, role))
         conn.commit()
@@ -615,6 +652,20 @@ def edit_user(user_id):
 
             if not username or not role:
                 flash("Username and role are required", "warning")
+                return redirect(url_for("edit_user", user_id=user_id))
+
+            # Normalize the username for comparison
+            normalized_username = username.replace(" ", "").lower()
+
+            # Check for duplicate usernames
+            cur.execute("""
+                SELECT id FROM users 
+                WHERE REPLACE(LOWER(username), ' ', '') = ? AND id != ?""",
+                (normalized_username, user_id))
+            duplicate = cur.fetchone()
+
+            if duplicate:
+                flash("A user with this username already exists.", "warning")
                 return redirect(url_for("edit_user", user_id=user_id))
 
             if passkey:
@@ -643,7 +694,7 @@ def edit_user(user_id):
 
     with sqlite3.connect(DB) as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id, username, role FROM users")
+        cur.execute("SELECT id, username, role FROM users WHERE is_deleted != 1")
         user_list = cur.fetchall()
 
     return render_template("users.html", users=user_list, edit_user=user_dict)
