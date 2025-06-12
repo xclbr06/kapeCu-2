@@ -150,7 +150,7 @@ nav {
     height: 100%;
     padding: 40px 20px;
     gap: 30px;
-    list-style: none; /* Remove bullet points */
+    list-style: none; 
 }
 
 nav a {
@@ -169,9 +169,9 @@ nav a i {
     font-size: 1.2em;
 }
 
-nav a:hover {
+nav li:hover a {
     background-color: var(--brown-light);
-    color: var(--light);
+    color: var(--light) !important;
     transform: translateX(5px);
 }
 
@@ -183,6 +183,11 @@ nav a.nav_active {
 nav a.nav_active i,
 nav a.nav_active span {
     color: var(--light);
+    transition: all ease 0.3s;
+}
+
+nav li:hover a span, nav li:hover a i {
+    color: var(--light);
 }
 
 .logout {
@@ -190,7 +195,6 @@ nav a.nav_active span {
     margin-bottom: 20px;
 }
 
-/* Responsive Navigation */
 @media (max-width: 768px) {
     nav {
         width: 80px;
