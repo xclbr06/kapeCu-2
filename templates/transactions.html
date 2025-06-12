@@ -24,6 +24,11 @@
         <button type="button" id="clear-search-button">Clear</button>
     </div>
 </form>
+
+<div style="display: flex; justify-content: center; margin: 20px 0;">
+    <button type="button" class="export-btn" onclick="exportTableToCSV('transactions.csv')">Export as CSV</button>
+    <button type="button" class="export-btn" onclick="exportTableToExcel('transactions.xls')">Export as Excel</button>
+</div>
     
 <table>
     <thead>
@@ -68,34 +73,5 @@
 
 {% include 'receipt.html' %}
 
-<script>
-    document.getElementById('search-query').addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        const transactions = document.querySelectorAll('.transaction-item');
-        
-        transactions.forEach(transaction => {
-            const receiptId = transaction.children[0].textContent.toLowerCase();
-            const staffName = transaction.children[1].textContent.toLowerCase();
-            if (receiptId.includes(query) || staffName.includes(query)) {
-                transaction.style.display = '';
-            } else {
-                transaction.style.display = 'none';
-            }
-        });
-    });
-
-    document.getElementById('clear-date-button').addEventListener('click', function() {
-        document.querySelector('input[name="startdate"]').value = '';
-        document.querySelector('input[name="enddate"]').value = '';
-        document.getElementById('filter-form').submit();
-    });
-
-    document.getElementById('clear-search-button').addEventListener('click', function() {
-        document.getElementById('search-query').value = '';
-        const transactions = document.querySelectorAll('.transaction-item');
-        transactions.forEach(transaction => {
-            transaction.style.display = '';
-        });
-    });
-</script>
+<script src="{{ url_for('static', filename='js/transaction.js') }}"></script>
 {% endblock %}
