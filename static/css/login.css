@@ -153,6 +153,11 @@ body:has(#login-form) #page-container {
     align-items: center;
 }
 
+body:has(#login-form) {
+    background: url("../img/cafebg.jpg");
+    background-size: cover;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     #login-form {
