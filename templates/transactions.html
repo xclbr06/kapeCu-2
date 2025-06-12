@@ -1,0 +1,101 @@
+{% extends 'layout.html' %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/transactions.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/receipt.css') }}">
+
+<h2>Transaction Records</h2>
+<form method="GET" id="filter-form">
+    <div>
+        <div>
+            <div>
+                <label>From:</label>
+                <input type="datetime-local" name="startdate" value="{{ request.args.get('startdate', '') }}">
+                <label>To:</label>
+                <input type="datetime-local" name="enddate" value="{{ request.args.get('enddate', '') }}">
+            </div>
+        </div>
+        <div>
+            <button type="submit" value="Filter">Filter</button>
+            <button type="button" id="clear-date-button">Clear</button>
+        </div>
+    </div>
+    <div>
+        <input type="text" placeholder="Receipt ID or Staff" name="q" id="search-query" value="{{ request.args.get('q', '') }}">
+        <button type="button" id="clear-search-button">Clear</button>
+    </div>
+</form>
+    
+<table>
+    <thead>
+        <tr>
+            <th>Receipt ID</th>
+            <th>Staff</th>
+            <th>Date & Time</th>
+            <th>Total Amount</th>
+            <th>Cash</th>
+            <th>Change</th>
+            <th>Mode of Payment</th>
+            <th>Details</th>
+            {% if session.role == 'admin' %}
+            <th>Delete</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody id="transaction-table-body">
+        {% for t in transactions %}
+        <tr class="transaction-item">
+            <td>{{ t[0] }}</td> 
+            <td>{{ t[1] }}</td> 
+            <td>{{ t[2] }}</td> 
+            <td>{{ t[3] }}</td> 
+            <td>{{ t[4] }}</td> 
+            <td>{{ t[5] }}</td> 
+            <td>{{ t[7] }}</td> 
+            <td>
+                <a class="action-btn" href="{{ url_for('transactions') }}?receipt_id={{ t[0] }}">View Receipt</a>
+            </td>
+            {% if session.role == 'admin' %}
+            <td>
+                    <form method="POST" action="{{ url_for('delete_transaction', transaction_id=t[0]) }}" style="display:inline;" onsubmit="return confirm('Delete this transaction?');">
+                        <button type="submit" class="action-btn action-btn-delete">Delete</button>
+                    </form>
+                </td>
+                {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% include 'receipt.html' %}
+
+<script>
+    document.getElementById('search-query').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const transactions = document.querySelectorAll('.transaction-item');
+        
+        transactions.forEach(transaction => {
+            const receiptId = transaction.children[0].textContent.toLowerCase();
+            const staffName = transaction.children[1].textContent.toLowerCase();
+            if (receiptId.includes(query) || staffName.includes(query)) {
+                transaction.style.display = '';
+            } else {
+                transaction.style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('clear-date-button').addEventListener('click', function() {
+        document.querySelector('input[name="startdate"]').value = '';
+        document.querySelector('input[name="enddate"]').value = '';
+        document.getElementById('filter-form').submit();
+    });
+
+    document.getElementById('clear-search-button').addEventListener('click', function() {
+        document.getElementById('search-query').value = '';
+        const transactions = document.querySelectorAll('.transaction-item');
+        transactions.forEach(transaction => {
+            transaction.style.display = '';
+        });
+    });
+</script>
+{% endblock %}

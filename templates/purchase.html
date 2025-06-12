@@ -1,0 +1,395 @@
+{% extends 'layout.html' %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/purchase.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/receipt.css') }}">
+
+<div id="purchase-message"></div>
+
+<div class="transaction-container">
+    <div class="main-content">
+        <section class="products-section">
+            <div class="categories-container" id="category-container">
+                <ul class="categories">
+                    <li class="{% if selected_category == 'all' %}active{% endif %}" data-category="all">
+                        <a href="#" onclick="setCategory('all')">All</a>
+                    </li>
+                    <li class="{% if selected_category == 'hot-coffee' %}active{% endif %}" data-category="hot-coffee">
+                        <a href="#" onclick="setCategory('hot-coffee')">Hot Coffee</a>
+                    </li>
+                    <li class="{% if selected_category == 'cold-coffee' %}active{% endif %}" data-category="cold-coffee">
+                        <a href="#" onclick="setCategory('cold-coffee')">Cold Coffee</a>
+                    </li>
+                    <li class="{% if selected_category == 'pastries' %}active{% endif %}" data-category="pastries">
+                        <a href="#" onclick="setCategory('pastries')">Pastries</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="search-container">
+                <input type="text" name="search-bar" id="search-query" class="search-input" placeholder="Search for an item...">
+                <button type="button" id="clear-search-button">Clear Search</button>
+            </div>
+
+            <ul id="product-list" class="products-grid">
+                {% for product in products %}
+                    {% if product['name'] %}
+                    <li 
+                        class="product-card{% if not product['is_available'] %} unavailable{% endif %}"
+                        data-id="{{ product['id'] }}"
+                        data-name="{{ product['name']|replace("'", "\\'")|replace('\\', '\\\\') }}"
+                        data-price="{{ product['price'] }}"
+                        data-category="{{ product['category']|replace("'", "\\'")|replace('\\', '\\\\') }}"
+                        data-available="{{ 'true' if product['is_available'] else 'false' }}"
+                    >
+                        {% if product['image_path'] %}
+                            <img src="{{ url_for('static', filename=product['image_path']) }}" alt="{{ product['name'] }}" class="product-img" style="width: 70px; height: 70px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
+                        {% else %}
+                            <div class="product-img-placeholder" style="width: 70px; height: 70px; background: #f3e9e2; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: #bfae9e; font-size: 2rem; margin-left: auto; margin-right: auto;">
+                                <span>☕</span>
+                            </div>
+                        {% endif %}
+                        <h4>{{ product['name'] }}</h4>
+                        <p class="product-price">₱{{ '%.2f'|format(product['price']) }}</p>
+                        <div class="product-info">
+                            <p class="availability">{{ "Available" if product['is_available'] else "Unavailable" }}</p>
+                            <p class="category">{{ product['category']|capitalize }}</p>
+                        </div>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </section>
+
+        <aside class="cart-section">
+                <h3 class="cart-title">Selected Products</h3>
+
+            <div id="selected-products-section" class="selected-products-container">
+                <!-- Selected products will appear here -->
+            </div>
+
+            <div id="total-amount-section" class="checkout-section" style="display: none;">
+                <div class="total-amount">
+                    Total: ₱<span id="total-amount">0.00</span>
+                </div>
+
+                <form id="transaction-form" method="POST" action="/purchase">
+                    <input type="hidden" name="user_id" value="{{ session.user_id }}">
+                    <input type="hidden" name="total_amount" id="form-total-amount" value="0">
+                    <input type="hidden" name="products" id="form-products" value="">
+                    
+                    <div class="form-group">
+                        <label for="mode-of-payment" class="form-label">Mode of Payment:</label>
+                        <select id="mode-of-payment" name="mode_of_payment" class="form-select" required>
+                            <option value="cash">Cash</option>
+                            <option value="gcash">GCash</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cash-amount" class="form-label">Cash Amount:</label>
+                        <input type="number" id="cash-amount" name="cash_amount" placeholder="Must be positive" class="form-input" min="0" step="0.01" required>
+                        <div class="change-display">Change: ₱<span id="change-amount">0.00</span></div>
+                        <div class="error-message" id="cash-error" style="display:none;">
+                            Insufficient cash amount.
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="change" id="form-change" value="0">
+                    <button type="submit" id="submit-button" class="submit-btn" disabled>Purchase</button>
+                </form>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<div id="receipt-modal">
+  <div id="receipt-wrapper">
+    <div id="receipt-area" class="receipt-area"></div>
+    <button id="print-receipt-btn" class="receipt-btn" onclick="printDiv('receipt-area')">Print Receipt</button>
+    <button class="receipt-btn" onclick="document.getElementById('receipt-modal').style.display='none';">Close</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selectedCategory = localStorage.getItem('selectedCategory') || 'all';
+    filterItems(selectedCategory);
+
+    function setCategory(category) {
+        localStorage.setItem('selectedCategory', category);
+        filterItems(category);
+    }
+    window.setCategory = setCategory;
+
+    function filterItems(category) {
+        const items = document.querySelectorAll('.product-card');
+        items.forEach(item => {
+            if (category === 'all' || item.dataset.category === category) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        document.querySelectorAll('.categories li').forEach(li => {
+            li.classList.toggle('active', li.dataset.category === category);
+        });
+    }
+
+    document.getElementById('search-query').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const products = document.querySelectorAll('.product-card');
+        products.forEach(product => {
+            const name = product.getAttribute('data-name').toLowerCase();
+            if (name.includes(query)) {
+                product.style.display = '';
+            } else {
+                product.style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('clear-search-button').addEventListener('click', function() {
+        const searchInput = document.getElementById('search-query');
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+    });
+
+    const selectedProductsSection = document.getElementById('selected-products-section');
+    const totalAmountElement = document.getElementById('total-amount');
+    const totalAmountSection = document.getElementById('total-amount-section');
+    const formTotalAmount = document.getElementById('form-total-amount');
+    const formProducts = document.getElementById('form-products');
+    const cashAmountInput = document.getElementById('cash-amount');
+    const changeAmountElement = document.getElementById('change-amount');
+    const formChange = document.getElementById('form-change');
+    const cashErrorElement = document.getElementById('cash-error');
+    const submitButton = document.getElementById('submit-button');
+    const productItems = document.querySelectorAll('.product-card');
+    const selectedProducts = {};
+
+    productItems.forEach(item => {
+        if (item.getAttribute('data-available') === 'false') return;
+        item.addEventListener('click', function () {
+            const productId = this.getAttribute('data-id');
+            const productName = this.getAttribute('data-name');
+            const productPrice = parseFloat(this.getAttribute('data-price'));
+
+            if (selectedProducts[productId]) {
+                removeProductFromSelectedSection(productId);
+                this.classList.remove('active_product');
+            } else {
+                selectedProducts[productId] = {
+                    id: productId,
+                    name: productName,
+                    price: productPrice,
+                    quantity: 1
+                };
+                addProductToSelectedSection(productId);
+                this.classList.add('active_product');
+            }
+        });
+    });
+
+    function addProductToSelectedSection(productId) {
+        const product = selectedProducts[productId];
+        const productElement = document.createElement('div');
+        productElement.classList.add('selected-product');
+        productElement.setAttribute('data-id', productId);
+        productElement.innerHTML = `
+            <h4>${product.name}</h4>
+            <p>Price: ₱${product.price.toFixed(2)}</p>
+            <div class="quantity-controls">
+                <span>Quantity:</span>
+                <button type="button" class="quantity-btn decrement">-</button>
+                <span class="quantity">${product.quantity}</span>
+                <button type="button" class="quantity-btn increment">+</button>
+            </div>
+            <p>Total: ₱<span class="total">${(product.price * product.quantity).toFixed(2)}</span></p>
+            <button type="button" class="cancel-btn cancel">X</button>
+        `;
+        selectedProductsSection.appendChild(productElement);
+
+        productElement.querySelector('.increment').addEventListener('click', function () {
+            updateQuantity(productId, 1);
+        });
+
+        productElement.querySelector('.decrement').addEventListener('click', function () {
+            updateQuantity(productId, -1);
+        });
+
+        productElement.querySelector('.cancel').addEventListener('click', function () {
+            removeProductFromSelectedSection(productId);
+            document.querySelector(`.product-card[data-id="${productId}"]`).classList.remove('active_product');
+        });
+
+        updateTotalAmount();
+    }
+
+    function removeProductFromSelectedSection(productId) {
+        delete selectedProducts[productId];
+        const productElement = selectedProductsSection.querySelector(`.selected-product[data-id="${productId}"]`);
+        if (productElement) {
+            selectedProductsSection.removeChild(productElement);
+        }
+        updateTotalAmount();
+    }
+
+    function updateQuantity(productId, change) {
+        const product = selectedProducts[productId];
+        product.quantity += change;
+        if (product.quantity < 1) {
+            product.quantity = 1;
+        }
+        const productElement = selectedProductsSection.querySelector(`.selected-product[data-id="${productId}"]`);
+        productElement.querySelector('.quantity').textContent = product.quantity;
+        productElement.querySelector('.total').textContent = (product.price * product.quantity).toFixed(2);
+        updateTotalAmount();
+    }
+
+    function updateTotalAmount() {
+        let totalAmount = 0;
+        const productsArray = [];
+        for (const productId in selectedProducts) {
+            const product = selectedProducts[productId];
+            const subtotal = product.price * product.quantity;
+            totalAmount += subtotal;
+            productsArray.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                quantity: product.quantity,
+                subtotal: subtotal
+            });
+        }
+        totalAmountElement.textContent = totalAmount.toFixed(2);
+        formTotalAmount.value = totalAmount.toFixed(2);
+        formProducts.value = JSON.stringify(productsArray);
+
+        if (productsArray.length > 0) {
+            totalAmountSection.style.display = 'block';
+        } else {
+            totalAmountSection.style.display = 'none';
+        }
+
+        updateChange();
+    }
+
+    cashAmountInput.addEventListener('input', updateChange);
+
+    function updateChange() {
+        const cashAmount = parseFloat(cashAmountInput.value) || 0;
+        const totalAmount = parseFloat(formTotalAmount.value) || 0;
+        const change = cashAmount - totalAmount;
+        changeAmountElement.textContent = change.toFixed(2);
+        formChange.value = change.toFixed(2);
+
+        if (cashAmount >= totalAmount && cashAmount > 0) {
+            cashErrorElement.style.display = 'none';
+            submitButton.disabled = false;
+        } else {
+            cashErrorElement.style.display = 'block';
+            submitButton.disabled = true;
+        }
+    }
+
+    function generateReceiptHTML(transaction, receipt_id) {
+        let itemsHtml = '';
+        transaction.products.forEach(p => {
+            itemsHtml += `<tr>
+                <td>${p.name}</td>
+                <td>${p.quantity}</td>
+                <td>₱${parseFloat(p.price).toFixed(2)}</td>
+            </tr>`;
+        });
+        const now = new Date();
+        return `
+            <div class="receipt-header">Cafe Name</div>
+            <div class="receipt-row receipt-number">Receipt #: ${receipt_id}</div>
+            <div class="receipt-row receipt-mode">Mode: ${transaction.mode_of_payment}</div>
+            <div class="receipt-row receipt-date">Date: ${now.toLocaleString()}</div>
+            <hr class="receipt-hr">
+            <table class="receipt-table">
+                <tr class="receipt-table-header">
+                    <td>Item</td>
+                    <td>Qty</td>
+                    <td>Price</td>
+                </tr>
+                ${itemsHtml}
+            </table>
+            <hr class="receipt-hr">
+            <div class="receipt-row receipt-total">Total: ₱${parseFloat(transaction.total_amount).toFixed(2)}</div>
+            <div class="receipt-row receipt-cash">Cash: ₱${parseFloat(transaction.cash_amount).toFixed(2)}</div>
+            <div class="receipt-row receipt-change">Change: ₱${parseFloat(transaction.change).toFixed(2)}</div>
+            `;
+    }
+
+    function printDiv(divId) {
+        var printContents = document.getElementById(divId).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+    }
+    window.printDiv = printDiv;
+
+    document.getElementById('transaction-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const transaction = {
+            user_id: formData.get('user_id'),
+            total_amount: formData.get('total_amount'),
+            products: JSON.parse(formData.get('products')),
+            mode_of_payment: formData.get('mode_of_payment'),
+            cash_amount: formData.get('cash_amount'),
+            change: formData.get('change')
+        };
+
+        let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        transactions.push(transaction);
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+
+        fetch('/purchase', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: new URLSearchParams([...formData])
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('receipt-area').innerHTML = generateReceiptHTML(transaction, data.receipt_id);
+                document.getElementById('receipt-modal').style.display = 'flex';
+                document.getElementById('transaction-form').reset();
+                document.getElementById('selected-products-section').innerHTML = '';
+                document.getElementById('total-amount-section').style.display = 'none';
+
+                for (const key in selectedProducts) {
+                    delete selectedProducts[key];
+                }
+                document.querySelectorAll('.product-card.active_product').forEach(item => {
+                    item.classList.remove('active_product');
+                });
+
+                submitButton.disabled = true;
+                cashAmountInput.value = '';
+                changeAmountElement.textContent = '0.00';
+                formChange.value = '0';
+
+                document.getElementById('purchase-message').innerHTML =
+                    '<div class="flash-message flash-success">Transaction recorded successfully!</div>';
+                setTimeout(() => {
+                    document.getElementById('purchase-message').innerHTML = '';
+                }, 3000);
+
+            } else {
+                alert(data.message || 'Transaction failed.');
+            }
+        })
+        .catch(() => {
+            alert('Error submitting transaction.');
+        });
+    });
+});
+</script>
+{% endblock %}

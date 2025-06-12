@@ -1,0 +1,187 @@
+:root {
+  --dark: #28282B;
+  --light: #fff;
+
+  --brown-light: #a67b5b;
+  --brown-ver1: #4b3621;
+  --brown-ver2: #6f4e37;
+  --brown-ver3: #382206;
+
+  --gray-light: #f8f9fa;
+  --gray-medium: #e9ecef;
+  --gray-dark: #6c757d;
+
+  --fs-xxxl: 2.2rem; 
+  --fs-xxl: 2rem; 
+  --fs-xl: 1.6rem; 
+  --fs-l: 1.4rem;
+  --fs-m: 1.2rem;
+  --fs-s: 1.14rem;  
+  --fs-xs: .975rem;  
+  --fs-xxs: 0.875rem;
+  --fs-xxxs: 0.75rem;
+
+  --primary-font: 'Poppins', sans-serif;
+  --trans-duration-default: .27s;
+
+  /* Box shadows acting as thin borders */
+  --shadow-default: rgba(0, 0, 0, 0.068) 0px 2px 3px 0px, rgba(0, 0, 0, 0.408) 0px 0px 0px .06rem;
+  --shadow-hover: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0, 0, 0, 0.312);
+  --shadow-material: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: var(--primary-font);
+  color: var(--brown-ver1);
+}
+
+#page-container {
+  margin-left: 140px;
+  padding: 20px;
+  position: relative;
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+  color: var(--brown-ver1);
+}
+
+h1 {
+  font-size: var(--fs-xxl);
+}
+
+h2 {
+  font-size: var(--fs-xl);
+}
+
+h3 {
+  font-size: var(--fs-l);
+}
+
+h4 {
+  font-size: var(--fs-m);
+}
+
+a {
+  text-decoration: none;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  90% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+}
+
+#clear-search-button {
+    padding: 0.375rem 1rem;
+    background-color: var(--gray-medium);
+    color: var(--dark);
+    border: none;
+    border-radius: 25px;
+    font-size: var(--fs-xxs);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--trans-duration-default);
+    white-space: nowrap;
+}
+
+#clear-search-button:hover {
+    background-color: var(--gray-dark);
+    color: var(--light);
+}
+
+.flash-message {
+  animation: fadeInOut 4s ease-in-out forwards;
+  padding: 5px 10px;
+  border-radius: 4px;
+  color: var(--light);
+  width: fit-content;
+  position: fixed;
+  left: 50%;
+  z-index: 9999;
+  top: 10px;
+  transform: translate(-50%, 0);
+}
+
+.flash-message.flash-success {
+  background-color: var(--brown-light);
+  color: var(--light);
+}
+
+.flash-message.flash-warning {
+  background-color: var(--brown-ver3);
+  color: var(--light);
+}
+
+.nav_active {
+  color: var(--brown-ver3);
+}
+
+/* < Navigation */
+
+nav {
+  position: fixed;
+  height: 100dvh;
+  z-index: 9999;
+}
+
+nav > ul {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 30px 15px;
+  gap: 20px;
+  font-weight: 500;
+}
+
+nav a {
+  color: var(--brown-light);
+  outline: none;
+}
+
+.logout {
+  position: absolute;
+  bottom: 30px;
+}
+
+/* > */
+
+ul > li {
+  list-style: none;
+}
+
+/* < Displayed Products */
+.categories a {
+  color: var(--brown-light);
+  font-weight: 500;
+}
+
+.categories .active a {
+  color: var(--brown-ver3);
+}
+
+li.product-item {
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 5px;
+}
+/* > */
+
+/* < Print Receipt */

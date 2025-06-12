@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cafe POS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div>
+            {% for category, message in messages %}
+                <div class="flash-message {% if category == 'success' %}flash-success{% elif category == 'warning' %}flash-warning{% endif %}">
+                {{ message }}
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <nav>
+        {% if session.user %}
+            <ul class="nav-list">
+                <li>
+                    <a class="{% if '/purchase' in request.path %}nav_active{% endif %}" href="{{ url_for('purchase') }}">Purchase</a>
+                </li>
+                <li>
+                    <a class="{% if '/transactions' in request.path %}nav_active{% endif %}" href="{{ url_for('transactions') }}">Transactions</a>
+                </li>
+
+                {% if session.role == 'admin' %}
+                    <li>
+                        <a class="{% if '/inventory' in request.path %}nav_active{% endif %}" href="{{ url_for('inventory') }}">Inventory</a>
+                    </li>
+                    <li>
+                        <a class="{% if '/sales' in request.path %}nav_active{% endif %}" href="{{ url_for('sales') }}">Sales</a>
+                    </li>
+                    <li>
+                        <a class="{% if '/users' in request.path %}nav_active{% endif %}" href="{{ url_for('users') }}">Users</a>
+                    </li>
+                {% endif %}
+
+                <li class="logout">
+                    <a class="{% if '/logout' in request.path %}nav_active{% endif %}" href="{{ url_for('logout') }}">Logout</a>
+                </li>
+            </ul>
+        {% endif %}
+    </nav>
+
+    <main id="page-container"> 
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

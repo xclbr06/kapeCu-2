@@ -1,0 +1,41 @@
+{% if transaction %}
+<div id="receipt-wrapper">
+    <div id="receipt-area" class="receipt-area">
+        <div class="receipt-header">Cafe Name</div>
+        <div class="receipt-row receipt-number">Receipt #: {{ transaction[0] }}</div>
+        <div class="receipt-row receipt-mode">Mode: {{ transaction[7] }}</div>
+        <div class="receipt-row receipt-date">Date: {{ transaction[3] }}</div>
+        <hr class="receipt-hr">
+        <table class="receipt-table">
+            <tr class="receipt-table-header">
+                <td>Item</td>
+                <td>Qty</td>
+                <td>Price</td>
+            </tr>
+            {% for p in products %}
+            <tr class="receipt-table-row">
+                <td class="receipt-item">{{ p[0] }}</td>
+                <td class="receipt-qty">{{ p[1] }}</td>
+                <td class="receipt-price">{{ p[2] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <hr class="receipt-hr">
+        <div class="receipt-row receipt-total">Total: P{{ transaction[6] }}</div>
+        <div class="receipt-row receipt-cash">Cash: P{{ transaction[4] }}</div>
+        <div class="receipt-row receipt-change">Change: P{{ transaction[5] }}</div>
+    </div>
+    <button id="print-receipt-btn" class="receipt-btn" onclick="printDiv('receipt-area')">Print Receipt</button>
+    <button class="receipt-btn" onclick="window.location.href='/transactions'">Close</button>
+</div>
+{% endif %}
+
+<script>
+function printDiv(divId) {
+    var printContents = document.getElementById(divId).innerHTML;
+    var originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+}
+</script>
