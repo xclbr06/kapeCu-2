@@ -157,6 +157,11 @@
     padding: 0 10px;
 }
 
+.product-card.active_product .availability {
+    margin-bottom: 18px;
+    transition: all var(--trans-duration-default);
+}
+
 .product-card.unavailable {
     opacity: 0.5;
     cursor: not-allowed;
@@ -207,6 +212,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    border-left: 2px solid var(--brown-light);
 }
 
 .cart-header {
@@ -217,6 +223,8 @@
     font-size: var(--fs-xl);
     font-weight: 600;
     color: var(--dark);
+    text-align: center;
+    justify-content: center;
 }
 
 .selected-products-container {
