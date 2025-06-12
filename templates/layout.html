@@ -4,6 +4,7 @@
     <title>Cafe POS</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -22,26 +23,44 @@
         {% if session.user %}
             <ul class="nav-list">
                 <li>
-                    <a class="{% if '/purchase' in request.path %}nav_active{% endif %}" href="{{ url_for('purchase') }}">Purchase</a>
+                    <a class="{% if '/purchase' in request.path %}nav_active{% endif %}" href="{{ url_for('purchase') }}">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Purchase</span>
+                    </a>
                 </li>
                 <li>
-                    <a class="{% if '/transactions' in request.path %}nav_active{% endif %}" href="{{ url_for('transactions') }}">Transactions</a>
+                    <a class="{% if '/transactions' in request.path %}nav_active{% endif %}" href="{{ url_for('transactions') }}">
+                        <i class="fas fa-receipt"></i>
+                        <span>Transactions</span>
+                    </a>
                 </li>
 
                 {% if session.role == 'admin' %}
                     <li>
-                        <a class="{% if '/inventory' in request.path %}nav_active{% endif %}" href="{{ url_for('inventory') }}">Inventory</a>
+                        <a class="{% if '/inventory' in request.path %}nav_active{% endif %}" href="{{ url_for('inventory') }}">
+                            <i class="fas fa-box-open"></i>
+                            <span>Inventory</span>
+                        </a>
                     </li>
                     <li>
-                        <a class="{% if '/sales' in request.path %}nav_active{% endif %}" href="{{ url_for('sales') }}">Sales</a>
+                        <a class="{% if '/sales' in request.path %}nav_active{% endif %}" href="{{ url_for('sales') }}">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Sales</span>
+                        </a>
                     </li>
                     <li>
-                        <a class="{% if '/users' in request.path %}nav_active{% endif %}" href="{{ url_for('users') }}">Users</a>
+                        <a class="{% if '/users' in request.path %}nav_active{% endif %}" href="{{ url_for('users') }}">
+                            <i class="fas fa-users"></i>
+                            <span>Users</span>
+                        </a>
                     </li>
                 {% endif %}
 
                 <li class="logout">
-                    <a class="{% if '/logout' in request.path %}nav_active{% endif %}" href="{{ url_for('logout') }}">Logout</a>
+                    <a class="{% if '/logout' in request.path %}nav_active{% endif %}" href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
                 </li>
             </ul>
         {% endif %}
